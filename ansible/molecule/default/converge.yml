@@ -1,0 +1,40 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  gather_facts: yes
+  vars:
+    # DHCP server configuration
+    dhcp_apparmor_fix: false
+    dhcp_global_default_lease_time: 28800   # 8hrs
+    dhcp_global_max_lease_time: 43200      # 12 hrs
+    dhcp_global_domain_name: dep7.com
+    dhcp_global_domain_name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+
+    dhcp_subnets:
+      - ip: 172.24.0.0
+        netmask: 255.255.255.0
+        domain_name_servers:
+          - 172.24.0.1
+        range_begin: 172.24.0.10
+        range_end: 172.24.0.211
+
+  pre_tasks:
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+      changed_when: false
+
+  post_tasks:
+    - name: Install packages for test
+      ansible.builtin.package:
+        name:
+          - nmap
+          - ntpstat
+        state: present
+
+  roles:
+    - { role: oefenweb.ntp }
+    - { role: bertvv.dhcp }

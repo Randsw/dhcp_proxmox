@@ -1,0 +1,4 @@
+docker_compose_network: "172.19.0.0/24"
+docker_compose_env: docker-compose.env
+docker_compose_dir: /home/{{ ansible_user }}/docker_compose
+docker_compose_path: "{{ docker_compose_dir }}/docker-compose.yml"

@@ -1,0 +1,31 @@
+---
+    name: Molecule-CI
+    on:
+      push:
+        branches:
+          - "main"
+    
+    jobs:
+    
+      test:
+        name: Molecule
+        runs-on: ubuntu-20.04
+    
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v2
+    
+          - name: Setup Python3
+            uses: actions/setup-python@v2
+            with:
+              python-version: '3.x'
+    
+          - name: Install test dependencies
+            run: pip install molecule[docker] yamllint ansible-lint ansible docker ansible-core molecule-docker testinfra pytest
+    
+          - name: Run Molecule test
+            working-directory: ./ansible
+            run: molecule test
+            env:
+              PY_COLORS : '1'
+              ANSIBLE_FORCE_COLOR: '1'

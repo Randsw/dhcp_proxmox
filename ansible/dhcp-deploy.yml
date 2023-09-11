@@ -1,0 +1,62 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+
+    - name: Delete VM ssh fingerprint
+      become: false
+      ansible.builtin.shell: "ssh-keygen -f ~/.ssh/known_hosts -R {{ hostvars[item]['ansible_host'] }}"
+      register: known_hosts_delete
+      changed_when: "'updated' in known_hosts_delete.stdout"
+      loop: "{{ groups['all'] }}"
+
+    - name: Accept server SSH host keys
+      become: false
+      ansible.builtin.shell: |
+        ssh-keyscan -H {{ hostvars[item]['ansible_host'] }} >> ~/.ssh/known_hosts
+      register: known_hosts_script
+      until: known_hosts_script.rc == 0
+      retries: 5
+      delay: 1
+      changed_when: known_hosts_script.rc != 0
+      loop: "{{ groups['all'] }}"
+
+
+- hosts: all
+  become: yes
+  gather_facts: yes
+
+  pre_tasks:
+
+    - name: Disable cloud-init
+      ansible.builtin.lineinfile:
+        path: /etc/cloud/cloud-init.disabled
+        line: cloud-init=disabled
+        create: yes
+        state: present
+
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+
+    - name: Find timezone
+      ansible.builtin.command: timedatectl
+      register: timedate_output
+      changed_when: false
+
+    - name: Set time zone
+      ansible.builtin.command: timedatectl set-timezone Europe/Moscow
+      when: '"Moscow" not in timedate_output.stdout'
+
+    - name: Fill /etc/hosts with hosts entry
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ hostvars[item]['ansible_host'] }}  {{ item }}"
+      loop: "{{ groups['all'] }}"
+
+  roles:
+    - { role: oefenweb.ntp }
+    - { role: bertvv.dhcp }
+    - { role: start_docker_compose }

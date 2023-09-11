@@ -1,0 +1,8 @@
+---
+all:
+  children:
+    dhcp_instances:
+      hosts:
+        dhcp-1:
+          ansible_host: ${tpl_dhcp_server_ip}
+          ansible_user: ${tpl_vm_user}

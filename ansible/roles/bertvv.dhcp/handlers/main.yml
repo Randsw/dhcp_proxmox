@@ -1,0 +1,12 @@
+# roles/dhcp/handlers/main.yml
+---
+
+- name: Restart DHCP
+  service:
+    name: "{{ dhcp_service }}"
+    state: "{{ (dhcp_global_server_state | default('started') == 'started') | ternary('restarted', 'stopped') }}"
+
+- name: Restart AppArmor
+  service:
+    name: apparmor
+    state: restarted

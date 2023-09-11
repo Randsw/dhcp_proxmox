@@ -1,0 +1,26 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+  post_tasks:
+
+    - name: Check dnhcp
+      ansible.builtin.command: sudo nmap --script broadcast-dhcp-discover -e {{ ansible_default_ipv4.interface }}
+      register: answer_dhcp
+
+    - name: Make sure a dhcp service is working
+      ansible.builtin.assert:
+        that:
+          - "'DHCPOFFER' in answer_dhcp.stdout"
+
+    - name: Check a ntpd service unit
+      ansible.builtin.systemd:
+        state: started
+        name: ntp
+      register: ntdp_result
+
+    - name: Make sure a ntpd service unit is running
+      ansible.builtin.assert:
+        that:
+          - ntdp_result.status.SubState == "running"

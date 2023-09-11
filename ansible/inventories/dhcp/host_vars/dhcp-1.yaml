@@ -1,0 +1,28 @@
+---
+# NTP server configuration
+
+
+# DHCP server configuration
+dhcp_apparmor_fix: true
+dhcp_global_default_lease_time: 28800   # 8hrs
+dhcp_global_max_lease_time: 43201      # 12 hrs
+dhcp_global_domain_name: dep7.com
+dhcp_global_domain_name_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+dhcp_subnets:
+  - ip: 10.1.1.0
+    netmask: 255.255.255.0
+    domain_name_servers:
+      - 10.1.1.3
+    range_begin: 10.1.1.230
+    range_end: 10.1.1.250
+
+#dhcp_hosts:
+  # - name: cl1
+  #   mac: 'de:ad:c0:de:ca:fe'
+  #   ip: 192.168.9.150
+  # - name: cl2
+  #   mac: '00:de:ad:be:ef:00'
+  #   ip: 192.168.222.151
